@@ -165,32 +165,67 @@ export default function NewProductPage() {
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Image URL
+                                    Product Image
                                 </label>
-                                <input
-                                    type="url"
-                                    value={formData.image}
-                                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                                    placeholder="https://example.com/image.jpg"
-                                />
-                                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                                    Or use Cloudinary upload (feature to be implemented)
-                                </p>
-                            </div>
+                                <div className="space-y-4">
+                                    <div className="flex gap-4">
+                                        <input
+                                            type="url"
+                                            value={formData.image}
+                                            onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                                            className="flex-1 px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                                            placeholder="Enter image URL or upload file"
+                                        />
+                                        <div className="relative">
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={async (e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (!file) return;
 
-                            {formData.image && (
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Image Preview
-                                    </label>
-                                    <img
-                                        src={formData.image}
-                                        alt="Preview"
-                                        className="w-full h-64 object-cover rounded-lg"
-                                    />
+                                                    const uploadToast = toast.loading('Uploading image...');
+                                                    const formData = new FormData();
+                                                    formData.append('file', file);
+
+                                                    try {
+                                                        const res = await fetch('/api/upload', {
+                                                            method: 'POST',
+                                                            body: formData,
+                                                        });
+
+                                                        if (!res.ok) throw new Error('Upload failed');
+
+                                                        const data = await res.json();
+                                                        setFormData(prev => ({ ...prev, image: data.url }));
+                                                        toast.success('Image uploaded!', { id: uploadToast });
+                                                    } catch (error) {
+                                                        console.error(error);
+                                                        toast.error('Failed to upload image', { id: uploadToast });
+                                                    }
+                                                }}
+                                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                            />
+                                            <button
+                                                type="button"
+                                                className="px-6 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                                            >
+                                                Upload
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {formData.image && (
+                                        <div className="relative w-full h-64 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
+                                            <img
+                                                src={formData.image}
+                                                alt="Preview"
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </div>
+                                    )}
                                 </div>
-                            )}
+                            </div>
 
                             <div className="flex gap-4 pt-4">
                                 <button

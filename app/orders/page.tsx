@@ -26,7 +26,7 @@ interface Order {
     phone: string;
     notes?: string;
     createdAt: string;
-    items: OrderItem[];
+    orderItems: OrderItem[];
 }
 
 export default function OrdersPage() {
@@ -178,7 +178,7 @@ export default function OrdersPage() {
 
                                         {/* Items */}
                                         <div className="space-y-3 mb-6">
-                                            {(order.items || order.orderItems || []).map((item) => (
+                                            {order.orderItems.map((item) => (
                                                 <div key={item.id} className="flex items-center gap-4">
                                                     <div className="w-16 h-16 rounded-lg bg-gray-200 dark:bg-gray-700 flex-shrink-0 overflow-hidden">
                                                         {item.product.image ? (
