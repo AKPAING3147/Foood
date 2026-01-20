@@ -70,27 +70,11 @@ export default function CheckoutPage() {
             const order = await orderResponse.json();
 
             if (paymentMethod === 'STRIPE') {
-                // Create Stripe payment intent
-                const paymentResponse = await fetch('/api/payments/create-intent', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        orderId: order.id,
-                        amount: totalPrice + 5,
-                    }),
-                });
+                // Simulate payment processing delay "for show"
+                await new Promise(resolve => setTimeout(resolve, 1500));
 
-                if (!paymentResponse.ok) {
-                    throw new Error('Failed to create payment intent');
-                }
-
-                const { clientSecret } = await paymentResponse.json();
-
-                // In a real app, you would redirect to Stripe checkout or use Stripe Elements
-                // For now, we'll just simulate success
-                alert('Stripe payment would be processed here. For demo, treating as successful.');
+                // For demonstration, we just treat it as successful
+                // No actual Stripe API call is made
             }
 
             // Clear cart and redirect to orders page
@@ -216,10 +200,10 @@ export default function CheckoutPage() {
                                         />
                                         <div className="ml-4">
                                             <div className="font-semibold text-gray-900 dark:text-white">
-                                                Credit/Debit Card (Stripe)
+                                                Credit/Debit Card
                                             </div>
                                             <div className="text-sm text-gray-600 dark:text-gray-400">
-                                                Pay securely with Stripe
+                                                Pay securely with Card
                                             </div>
                                         </div>
                                     </label>
