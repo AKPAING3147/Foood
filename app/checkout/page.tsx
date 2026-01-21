@@ -10,10 +10,13 @@ export default function CheckoutPage() {
     const { cart, totalPrice, clearCart } = useCart();
     const [user, setUser] = useState<any>(null);
     const [loading, setLoading] = useState(false);
-    const [paymentMethod, setPaymentMethod] = useState<'COD' | 'STRIPE'>('COD');
+    const [paymentMethod, setPaymentMethod] = useState<'COD' | 'STRIPE' | 'BANK_TRANSFER'>('COD');
     const [deliveryAddress, setDeliveryAddress] = useState('');
     const [phone, setPhone] = useState('');
     const [notes, setNotes] = useState('');
+    const [paymentSlip, setPaymentSlip] = useState<File | null>(null);
+    const [paymentSlipPreview, setPaymentSlipPreview] = useState<string | null>(null);
+    const [uploading, setUploading] = useState(false);
 
     useEffect(() => {
         const userData = localStorage.getItem('user');
@@ -33,9 +36,27 @@ export default function CheckoutPage() {
         }
     }, [cart, router]);
 
+    const handlePaymentSlipChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setPaymentSlip(file);
+            // Create preview
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPaymentSlipPreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     const handlePlaceOrder = async () => {
         if (!deliveryAddress || !phone) {
             alert('Please fill in all required fields');
+            return;
+        }
+
+        if (paymentMethod === 'BANK_TRANSFER' && !paymentSlip) {
+            alert('Please upload your payment slip for bank transfer');
             return;
         }
 
@@ -68,13 +89,39 @@ export default function CheckoutPage() {
             }
 
             const order = await orderResponse.json();
+            console.log('Order response:', order);
+            console.log('Order ID:', order.order?.id || order.id);
 
+            // Handle payment based on method
             if (paymentMethod === 'STRIPE') {
                 // Simulate payment processing delay "for show"
                 await new Promise(resolve => setTimeout(resolve, 1500));
-
                 // For demonstration, we just treat it as successful
                 // No actual Stripe API call is made
+            } else if (paymentMethod === 'BANK_TRANSFER' && paymentSlip) {
+                // Upload payment slip
+                setUploading(true);
+                const formData = new FormData();
+                formData.append('file', paymentSlip);
+                const actualOrderId = order.order?.id || order.id;
+                console.log('Uploading payment slip for order ID:', actualOrderId);
+                formData.append('orderId', actualOrderId);
+                formData.append('bankAccountNumber', 'Admin Bank Account');
+                formData.append('bankAccountName', 'FoodieGo Admin');
+
+                const uploadResponse = await fetch('/api/payment-slip', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                console.log('Upload response status:', uploadResponse.status);
+                if (!uploadResponse.ok) {
+                    const errorData = await uploadResponse.json();
+                    console.error('Upload error:', errorData);
+                    throw new Error(errorData.error || 'Failed to upload payment slip');
+                }
+
+                setUploading(false);
             }
 
             // Clear cart and redirect to orders page
@@ -86,6 +133,7 @@ export default function CheckoutPage() {
             alert(error.message || 'Failed to place order');
         } finally {
             setLoading(false);
+            setUploading(false);
         }
     };
 
@@ -207,7 +255,78 @@ export default function CheckoutPage() {
                                             </div>
                                         </div>
                                     </label>
+
+                                    <label className="flex items-center p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:border-orange-500 transition-colors">
+                                        <input
+                                            type="radio"
+                                            name="paymentMethod"
+                                            value="BANK_TRANSFER"
+                                            checked={paymentMethod === 'BANK_TRANSFER'}
+                                            onChange={() => setPaymentMethod('BANK_TRANSFER')}
+                                            className="w-5 h-5 text-orange-500 focus:ring-orange-500"
+                                        />
+                                        <div className="ml-4">
+                                            <div className="font-semibold text-gray-900 dark:text-white">
+                                                Bank Transfer
+                                            </div>
+                                            <div className="text-sm text-gray-600 dark:text-gray-400">
+                                                Transfer to our bank account
+                                            </div>
+                                        </div>
+                                    </label>
                                 </div>
+
+                                {/* Bank Transfer Details */}
+                                {paymentMethod === 'BANK_TRANSFER' && (
+                                    <div className="mt-6 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg border-2 border-orange-200 dark:border-orange-800">
+                                        <h3 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
+                                            <svg className="w-5 h-5 mr-2 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                                            </svg>
+                                            Bank Account Details
+                                        </h3>
+                                        <div className="space-y-2 text-sm">
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-600 dark:text-gray-400">Account Name:</span>
+                                                <span className="font-semibold text-gray-900 dark:text-white">FoodieGo Admin</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-600 dark:text-gray-400">Account Number:</span>
+                                                <span className="font-semibold text-gray-900 dark:text-white">1234567890</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-600 dark:text-gray-400">Bank Name:</span>
+                                                <span className="font-semibold text-gray-900 dark:text-white">ABC Bank</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-600 dark:text-gray-400">Total Amount:</span>
+                                                <span className="font-bold text-lg text-orange-600 dark:text-orange-400">${(totalPrice + 5).toFixed(2)}</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-4 pt-4 border-t border-orange-200 dark:border-orange-800">
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                                Upload Payment Slip *
+                                            </label>
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handlePaymentSlipChange}
+                                                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-orange-500 file:text-white hover:file:bg-orange-600 transition-all"
+                                            />
+                                            {paymentSlipPreview && (
+                                                <div className="mt-3">
+                                                    <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">Preview:</p>
+                                                    <img
+                                                        src={paymentSlipPreview}
+                                                        alt="Payment slip preview"
+                                                        className="max-w-full h-40 object-contain rounded-lg border border-gray-300 dark:border-gray-600"
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -251,10 +370,10 @@ export default function CheckoutPage() {
                                 {/* Place Order Button */}
                                 <button
                                     onClick={handlePlaceOrder}
-                                    disabled={loading}
+                                    disabled={loading || uploading}
                                     className="w-full mt-6 px-6 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold btn-hover-lift disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    {loading ? 'Placing Order...' : 'Place Order'}
+                                    {uploading ? 'Uploading Payment Slip...' : loading ? 'Placing Order...' : 'Place Order'}
                                 </button>
                             </div>
                         </div>

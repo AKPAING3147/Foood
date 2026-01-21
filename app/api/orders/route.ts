@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
             });
         }
 
-        // Create order with order items
+        // Create order with order items and payment record
         const order = await prisma.order.create({
             data: {
                 userId,
@@ -109,6 +109,13 @@ export async function POST(request: NextRequest) {
                 notes: notes || null,
                 orderItems: {
                     create: orderItemsData,
+                },
+                payment: {
+                    create: {
+                        amount: totalAmount,
+                        paymentMethod,
+                        status: 'PENDING',
+                    },
                 },
             },
             include: {
