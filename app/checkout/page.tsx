@@ -285,6 +285,15 @@ export default function CheckoutPage() {
                                             </svg>
                                             Bank Account Details
                                         </h3>
+                                        <div className="flex justify-center mb-4">
+                                            <div className="bg-white p-2 rounded-lg shadow-sm">
+                                                <img
+                                                    src="/payment-qr.png"
+                                                    alt="Payment QR Code"
+                                                    className="w-48 h-48 object-contain"
+                                                />
+                                            </div>
+                                        </div>
                                         <div className="space-y-2 text-sm">
                                             <div className="flex justify-between">
                                                 <span className="text-gray-600 dark:text-gray-400">Account Name:</span>

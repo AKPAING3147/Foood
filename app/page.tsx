@@ -23,7 +23,7 @@ export default function Home() {
                 href="/menu"
                 className="px-8 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-bold text-lg btn-hover-lift shadow-lg"
               >
-                Order Now 🍕
+                Order Now
               </Link>
               <Link
                 href="/register"
@@ -34,11 +34,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Floating Food Emojis */}
-          <div className="absolute top-20 left-10 text-6xl animate-bounce" style={{ animationDelay: '0s' }}>🍔</div>
-          <div className="absolute top-40 right-20 text-6xl animate-bounce" style={{ animationDelay: '0.5s' }}>🍕</div>
-          <div className="absolute bottom-20 left-20 text-6xl animate-bounce" style={{ animationDelay: '1s' }}>🍜</div>
-          <div className="absolute bottom-40 right-10 text-6xl animate-bounce" style={{ animationDelay: '1.5s' }}>🍰</div>
+
         </div>
       </section>
 
