@@ -134,8 +134,9 @@ export async function POST(request: NextRequest) {
         );
     } catch (error) {
         console.error('Create order error:', error);
+        console.error('Create order error:', error);
         return NextResponse.json(
-            { error: 'Internal server error' },
+            { error: `Internal server error: ${(error as any).message}` },
             { status: 500 }
         );
     }
