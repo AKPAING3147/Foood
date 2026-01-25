@@ -10,6 +10,7 @@ export default function Navbar() {
     const router = useRouter();
     const { totalItems } = useCart();
     const [user, setUser] = useState<any>(null);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     useEffect(() => {
         const userData = localStorage.getItem('user');
@@ -18,9 +19,15 @@ export default function Navbar() {
         }
     }, []);
 
+    // Close mobile menu when route changes
+    useEffect(() => {
+        setMobileMenuOpen(false);
+    }, [pathname]);
+
     const handleLogout = () => {
         localStorage.removeItem('user');
         setUser(null);
+        setMobileMenuOpen(false);
         router.push('/');
     };
 
@@ -37,7 +44,7 @@ export default function Navbar() {
                         <span className="text-2xl font-bold gradient-text">FoodieGo</span>
                     </Link>
 
-                    {/* Navigation Links */}
+                    {/* Desktop Navigation Links */}
                     <div className="hidden md:flex items-center space-x-8">
                         <Link
                             href="/menu"
@@ -90,38 +97,128 @@ export default function Navbar() {
                             )}
                         </Link>
 
-                        {/* User Actions */}
-                        {user ? (
-                            <div className="flex items-center space-x-3">
-                                <span className="text-sm text-gray-700 dark:text-gray-300">
-                                    Hi, {user.name?.split(' ')[0]}
-                                </span>
-                                <button
-                                    onClick={handleLogout}
-                                    className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-orange-500 transition-colors"
-                                >
-                                    Logout
-                                </button>
-                            </div>
-                        ) : (
-                            <div className="flex items-center space-x-3">
-                                <Link
-                                    href="/login"
-                                    className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-orange-500 transition-colors"
-                                >
-                                    Login
-                                </Link>
-                                <Link
-                                    href="/register"
-                                    className="px-4 py-2 text-sm font-medium bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg btn-hover-lift"
-                                >
-                                    Sign Up
-                                </Link>
-                            </div>
-                        )}
+                        {/* Desktop User Actions */}
+                        <div className="hidden md:flex items-center space-x-3">
+                            {user ? (
+                                <>
+                                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                                        Hi, {user.name?.split(' ')[0]}
+                                    </span>
+                                    <button
+                                        onClick={handleLogout}
+                                        className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-orange-500 transition-colors"
+                                    >
+                                        Logout
+                                    </button>
+                                </>
+                            ) : (
+                                <>
+                                    <Link
+                                        href="/login"
+                                        className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-orange-500 transition-colors"
+                                    >
+                                        Login
+                                    </Link>
+                                    <Link
+                                        href="/register"
+                                        className="px-4 py-2 text-sm font-medium bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg btn-hover-lift"
+                                    >
+                                        Sign Up
+                                    </Link>
+                                </>
+                            )}
+                        </div>
+
+                        {/* Mobile Hamburger Button */}
+                        <button
+                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                            className="md:hidden p-2 text-gray-700 dark:text-gray-300 hover:text-orange-500 transition-colors"
+                            aria-label="Toggle menu"
+                        >
+                            {mobileMenuOpen ? (
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            ) : (
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                                </svg>
+                            )}
+                        </button>
                     </div>
                 </div>
             </div>
+
+            {/* Mobile Menu */}
+            {mobileMenuOpen && (
+                <div className="md:hidden bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
+                    <div className="px-4 py-4 space-y-3">
+                        <Link
+                            href="/menu"
+                            className={`block px-4 py-3 rounded-lg text-base font-medium transition-colors ${pathname === '/menu'
+                                ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-500'
+                                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                                }`}
+                        >
+                            Menu
+                        </Link>
+
+                        {user && (
+                            <>
+                                <Link
+                                    href="/orders"
+                                    className={`block px-4 py-3 rounded-lg text-base font-medium transition-colors ${pathname === '/orders'
+                                        ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-500'
+                                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                                        }`}
+                                >
+                                    My Orders
+                                </Link>
+                                <Link
+                                    href="/profile"
+                                    className={`block px-4 py-3 rounded-lg text-base font-medium transition-colors ${pathname === '/profile'
+                                        ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-500'
+                                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                                        }`}
+                                >
+                                    Profile
+                                </Link>
+                            </>
+                        )}
+
+                        <div className="border-t border-gray-200 dark:border-gray-700 pt-3 mt-3">
+                            {user ? (
+                                <div className="space-y-3">
+                                    <div className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400">
+                                        Signed in as <span className="font-semibold text-gray-900 dark:text-white">{user.name}</span>
+                                    </div>
+                                    <button
+                                        onClick={handleLogout}
+                                        className="w-full px-4 py-3 text-left rounded-lg text-base font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                                    >
+                                        Logout
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    <Link
+                                        href="/login"
+                                        className="block px-4 py-3 rounded-lg text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                                    >
+                                        Login
+                                    </Link>
+                                    <Link
+                                        href="/register"
+                                        className="block px-4 py-3 rounded-lg text-base font-medium text-center bg-gradient-to-r from-orange-500 to-orange-600 text-white"
+                                    >
+                                        Sign Up
+                                    </Link>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </nav>
     );
 }
